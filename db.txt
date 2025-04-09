@@ -1,0 +1,127 @@
+-- Create the Database
+CREATE DATABASE ZapCart2DB;
+USE ZapCart2DB;
+
+-- Table: Products (For item details in the store)
+CREATE TABLE Products (
+    ProductID INT AUTO_INCREMENT PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    Category VARCHAR(50),
+    Price DECIMAL(10,2) NOT NULL,
+    Stock INT NOT NULL,
+    Weight DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Added for weight tracking
+    Calories INT NOT NULL DEFAULT 0, -- Added for calorie tracking
+    ShelfLocation VARCHAR(10) NOT NULL, -- Added for shelf location tracking
+    RFIDTag VARCHAR(50) UNIQUE NOT NULL,
+    LastUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table: ShopOwners (For storing shop owner details)
+CREATE TABLE ShopOwners (
+    ShopOwnerID INT AUTO_INCREMENT PRIMARY KEY,
+    ShopName VARCHAR(100) NOT NULL,
+    OwnerName VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Password VARCHAR(100) NOT NULL,
+    ContactNumber VARCHAR(15),
+    Address TEXT,
+    SubscriptionPlan ENUM('Basic', 'Standard', 'Premium') DEFAULT 'Basic',
+    SubscriptionStartDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    SubscriptionEndDate TIMESTAMP,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table: Shops (Links shops to their respective owners)
+CREATE TABLE Shops (
+    ShopID INT AUTO_INCREMENT PRIMARY KEY,
+    ShopOwnerID INT NOT NULL,
+    ShopName VARCHAR(100) NOT NULL,
+    Location VARCHAR(255),
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ShopOwnerID) REFERENCES ShopOwners(ShopOwnerID) ON DELETE CASCADE
+);
+
+-- Table: Carts (Tracks cart usage for customers)
+CREATE TABLE Carts (
+    CartID INT AUTO_INCREMENT PRIMARY KEY,
+    ShopID INT NOT NULL,
+    Status ENUM('Active', 'Completed') DEFAULT 'Active',
+    TotalAmount DECIMAL(10,2) DEFAULT 0.00,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CompletedAt TIMESTAMP NULL,
+    FOREIGN KEY (ShopID) REFERENCES Shops(ShopID) ON DELETE CASCADE
+);
+
+-- Table: CartItems (Tracks items added to carts)
+CREATE TABLE CartItems (
+    CartItemID INT AUTO_INCREMENT PRIMARY KEY,
+    CartID INT NOT NULL,
+    ProductID INT NOT NULL,
+    ProductName VARCHAR(100) NOT NULL,
+    Quantity INT NOT NULL DEFAULT 1,
+    Weight DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Added for weight tracking
+    Calories INT NOT NULL DEFAULT 0, -- Added for calorie tracking
+    AddedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CartID) REFERENCES Carts(CartID) ON DELETE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE CASCADE
+);
+
+-- Table: Transactions (Tracks purchases made through carts)
+CREATE TABLE Transactions (
+    TransactionID INT AUTO_INCREMENT PRIMARY KEY,
+    CartID INT NOT NULL,
+    ShopID INT NOT NULL,
+    TotalAmount DECIMAL(10,2) NOT NULL,
+    PaymentMethod ENUM('Cash', 'Card', 'Online') NOT NULL,
+    TransactionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CartID) REFERENCES Carts(CartID) ON DELETE CASCADE,
+    FOREIGN KEY (ShopID) REFERENCES Shops(ShopID) ON DELETE CASCADE
+);
+
+-- Table: AIRecommendations (Tracks AI-generated product suggestions)
+CREATE TABLE AIRecommendations (
+    RecommendationID INT AUTO_INCREMENT PRIMARY KEY,
+    ShopID INT NOT NULL,
+    ProductID INT NOT NULL,
+    ProductName VARCHAR(100) NOT NULL,
+    ShelfLocation VARCHAR(10) NOT NULL, -- Added for original product location
+    RecommendedProductID INT NOT NULL,
+    RecommendedProductName VARCHAR(100) NOT NULL,
+    RecommendedShelfLocation VARCHAR(10) NOT NULL, -- Added for recommended product location
+    RecommendationFor ENUM('ShopOwner', 'Customer') NOT NULL,
+    IsSuccessful BOOLEAN DEFAULT FALSE,
+    RecommendationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ShopID) REFERENCES Shops(ShopID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+    FOREIGN KEY (RecommendedProductID) REFERENCES Products(ProductID)
+);
+
+-- Table: ActivityLogs (Logs activities across the platform)
+CREATE TABLE ActivityLogs (
+    LogID INT AUTO_INCREMENT PRIMARY KEY,
+    ShopID INT,
+    UserType ENUM('Admin', 'ShopOwner', 'System') NOT NULL,
+    Activity VARCHAR(255) NOT NULL,
+    ActivityDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ShopID) REFERENCES Shops(ShopID)
+);
+
+-- Table: SubscriptionPlans (Manages subscription plan details)
+CREATE TABLE SubscriptionPlans (
+    PlanID INT AUTO_INCREMENT PRIMARY KEY,
+    PlanName VARCHAR(50) NOT NULL,
+    Price DECIMAL(10,2) NOT NULL,
+    DurationInDays INT NOT NULL,
+    Features TEXT NOT NULL
+);
+
+-- Table: Admin (For storing ZapCart Owner/Admin user details)
+CREATE TABLE Admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_uname VARCHAR(50) NOT NULL,  -- Username for Admin login
+    admin_email VARCHAR(100) UNIQUE NOT NULL,  -- Email for Admin login
+    admin_pwd VARCHAR(100) NOT NULL,  -- Password for Admin login (hashed)
+    role ENUM('Owner', 'Admin') DEFAULT 'Owner',  -- Role of the admin, Owner will be the main admin
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Date of account creation
+    last_login TIMESTAMP NULL  -- Last login time for monitoring
+);
