@@ -32,3 +32,34 @@ Work Flow:
 • A store security checkpoint verifies that all scanned products match the cart’s content using RFID tracking.
 • Once cleared, the customer exits without needing a traditional checkout counter.
 
+## Features
+- User-friendly interface
+- Secure payment processing
+- Inventory management
+- Subscription plans
+- Real-time analytics
+
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/LORDRAIDEN007/ZAPCART.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd zapcart2.0
+   ```
+3. Set up the database using the provided SQL scripts.
+4. Configure the database connection in `helpers/init_conn_db.php`.
+
+## Usage
+- Access the admin panel at `/zapcart_admin`.
+- Access the store owner panel at `/user_admin`.
+- Access zapcart disply at `/screen`.
+- Manage products, subscriptions, and transactions.
+- View analytics and reports.
+
+## Contributing
+We welcome contributions! Please fork the repository and submit a pull request.
+
+## License
+This project is licensed under the MIT License.
